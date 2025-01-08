@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{% block title %}{% endblock %} | Logistics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      function toggleMenu() {
+        document.getElementById("nav-linksR").classList.toggle("hidden");
+      }
+    </script>
+</head>
+
+<body>
+    <nav class="w-full bg-[#FFF] border-b border-i-link-light font-semibold text-sm" style="user-select: none; height: 64px;">
+        <div class="flex justify-between items-center h-full">
+            <!-- Navbar Links with Dropdowns - Anchored to the Left -->
+            <div id="nav-links" class="sm:flex sm:space-x-4 items-center h-full px-2">
+                <a href="{{ url_for('dashboard.index') }}" {% if request.path == url_for('dashboard.index') %} class="text-i-blue flex items-center h-full px-2 cursor-pointer" {% endif %} class="text-i-link hover:text-i-blue transition ease-in-out duration-50 flex items-center h-full px-2">
+                    <span class="material-icons" title="Admin Center">home</span><span class="ml-1">Dashboard</span>
+                </a>
+                <div class="dropdown h-full">
+                    <a  class="text-i-link hover:text-i-blue transition ease-in-out duration-50 flex items-center h-full px-2 cursor-pointer">
+                        <span class="material-icons" title="Admin Center">local_shipping</span><span class="ml-1">Shipments</span><span class="material-icons">expand_more</span>
+                    </a>
+                    <div class="dropdown-content border border-i-link">
+                        <a href="{{ url_for('dashboard.index') }}" class="text-i-link">Importing</a>
+                        <a href="{{ url_for('dashboard.index') }}" class="text-i-link">Depot</a>
+                        <a href="{{ url_for('dashboard.index') }}" class="text-i-link">Exporting</a>
+                        <a href="{{ url_for('dashboard.index') }}" class="text-i-link">Archive</a>
+                    </div>
+                </div>
+                <a href="{{ url_for('dashboard.index') }}" class="text-i-link hover:text-i-blue transition ease-in-out duration-50 flex items-center h-full px-2">
+                    <span class="material-icons" title="Admin Center">inventory_2</span><span class="ml-1">Tanks</span>
+                </a>
+                <div class="dropdown h-full">
+                    <a {% if request.path in [url_for('principals.index')] %} class="text-i-blue flex items-center h-full px-2 cursor-pointer" {% endif %} class="text-i-link hover:text-i-blue transition ease-in-out duration-50 flex items-center h-full px-2 cursor-pointer">
+                        <span class="material-icons" title="Admin Center">business_center</span><span class="ml-1">Operation</span><span class="material-icons">expand_more</span>
+                    </a>
+                    <div class="dropdown-content border border-i-link">
+                        <a {% if request.path == url_for('principals.index') %} class="text-i-blue" {% endif %} href="{{ url_for('principals.index') }}" class="text-i-link">Principals</a>
+                        <a href="{{ url_for('dashboard.index') }}" class="text-i-link">Cleaning Costs</a>
+                        <a href="{{ url_for('dashboard.index') }}" class="text-i-link">Depot Tariffs</a>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Right-Side Icons - Anchored to the Right -->
+            <div class="sm:flex space-x-4 items-center h-full px-2">
+                <ul class="flex space-x-4 h-full">
+                    {% if g.user %}
+                        {% if g.user[4] == 'ADMIN' %}
+                            <li class="h-full">
+                                <a href="{{ url_for('dashboard.index') }}" {% if request.path == url_for('dashboard.admin') %} class="text-i-blue" {% endif %} class="text-i-link hover:text-i-blue transition duration-50 flex items-center h-full px-2">
+                                    <span class="material-icons" title="Admin Center">person</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                        <li class="flex space-x-4 h-full">
+                            <div class="dropdown h-full">
+                                <a href="{{ url_for('dashboard.index') }}" class="text-i-link hover:text-i-blue transition ease-in-out duration-50 flex items-center h-full px-2">
+                                    <span class="material-icons" title="Admin Center">person</span><span class="ml-1">{{g.user.firstname}}</span><span class="material-icons">expand_more</span>
+                                </a>
+                                <div class="dropdown-content-right">
+                                    <a href="{{ url_for('dashboard.index') }}" class="text-i-link">Account Settings</a>
+                                    <a href="{{ url_for('auth.logout') }}" class="text-i-link hover:text-i-blue transition duration-50">
+                                        Logout
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+
+    <section class="content">
+        {% for message in get_flashed_messages() %}
+            <div class="flash">{{ message }}</div>
+        {% endfor %}
+        {% block content %}{% endblock %}
+    </section>
+</body>
+</html>

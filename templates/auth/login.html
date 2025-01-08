@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-i-bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/fonts.css') }}" rel="stylesheet">
+    <title>Tanks - Login</title>
+</head>
+<body>
+    <div class="flex justify-center items-start h-[80vh] mt-[20vh]">
+        <div class="w-auto">
+          <div class="text-center">
+            <h1 class="text-i-header font-display inter-600 border-b border-i-header" style="font-size: 24px;">TankView Login</h1>
+            <form method="post">
+              <input type="hidden" name="form_type" value="login"><br>
+      
+              <div class="mb-4">
+                <label for="username" class="inter-600 text-i-link block text-left">Username</label>
+                <input type="text" class="inter-500 border-i-link-light text-i-link py-2 px-2 rounded-md border placeholder:text-i-link-light focus:outline-none focus:border-i-link transition ease-in-out duration-500" style="font-size: 12px; width: 300px;" name="username" id="username" placeholder="Enter Username" required><br>
+              </div>
+      
+              <div class="mb-4">
+                <label for="password" class="inter-600 text-i-link block text-left">Password</label>
+                <input type="password" class="inter-500 border-i-link-light text-i-link py-2 px-2 rounded-md border placeholder:text-i-link-light focus:outline-none focus:border-i-link transition ease-in-out duration-500" style="font-size: 12px; width: 300px;" name="password" id="password" placeholder="Enter Password" required><br>
+              </div>
+      
+              <input type="submit" value="Login" class="w-3/4 py-2 rounded-md bg-i-blue hover:bg-i-blue-hover text-i-bg inter-600 cursor-pointer transition ease-in-out duration-500">
+            </form>
+          </div>
+        </div>
+      </div>
+      
+</body>
+</html>

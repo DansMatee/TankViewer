@@ -1,0 +1,667 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}Principals{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<script type="text/javascript">
+    const principalList = {{ principals|tojson }};
+</script>
+
+
+<div class="flex w-full h-[calc(100vh-64px)] relative">
+    <!-- Left Panel for Filters -->
+    <div id="filterPanel" class="bg-gray-100 w-1/5 px-2 border-r border-i-link-light relative flex flex-col h-full">
+        <!-- Filter Content -->
+        <div id="filterContent" class="flex flex-col h-full">
+            <!-- Scrollable Form Content -->
+            <div class="overflow-y-auto flex-grow">
+                <h2 class="font-semibold text-lg px-4 pt-8">Filters</h2>
+                <form class="p-4 flex flex-col space-y-4">
+                    <div class="mb-1">
+                        <label for="name" class="inter-600 text-i-link block text-left">Name</label>
+                        <input type="text" class="inter-500 border-i-link-light text-i-link py-2 px-2 border placeholder:text-i-link-light focus:outline-none focus:border-i-link w-full transition ease-in-out duration-500" style="font-size: 12px;" name="name" id="name" placeholder="Enter Principal Name" required><br>
+                    </div>
+                    <div class="mb-1">
+                        <label for="tier" class="inter-600 text-i-link block text-left">Tier</label>
+                        <input type="text" class="inter-500 border-i-link-light text-i-link py-2 px-2 border placeholder:text-i-link-light focus:outline-none focus:border-i-link w-full transition ease-in-out duration-500" style="font-size: 12px;" name="tier" id="tier" placeholder="Enter Tier" required><br>
+                    </div>
+                    <div class="mb-1">
+                        <label for="agencyAgreement" class="inter-600 text-i-link block text-left">Agency Agreement</label>
+                        <select id="agencyDropdown" class="inter-500 border-i-link-light text-i-link py-2 px-2 border placeholder:text-i-link-light focus:outline-none focus:border-i-link w-full transition ease-in-out duration-500" name="agreement" style="font-size: 12px;">
+                            <option value="both" selected="selected">Both</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    <div class="mb-1">
+                        <label for="demurrage" class="inter-600 text-i-link block text-left">Demurrage Commission</label>
+                        <input type="text" class="inter-500 border-i-link-light text-i-link py-2 px-2 border placeholder:text-i-link-light focus:outline-none focus:border-i-link w-full transition ease-in-out duration-500" style="font-size: 12px;" name="demurrage" id="demurrage" placeholder="Enter Demurrage Commission" required><br>
+                    </div>
+                    <div class="mb-1">
+                        <label for="origin" class="inter-600 text-i-link block text-left">Origin</label>
+                        <select id="originDropdown" class="inter-500 border-i-link-light text-i-link py-2 px-2 border placeholder:text-i-link-light focus:outline-none focus:border-i-link w-full transition ease-in-out duration-500" name="origin" style="font-size: 12px;">
+                            <option value="all" selected="selected">All</option>
+                            {% for country in countries %}
+                                <option value="{{country}}">{{country}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-1">
+                        <label class="text-i-link align-middle container inter-600">Show Hidden Principals
+                            <input type="checkbox" name="hidden" id="hiddenPrincipals">
+                            <span class="checkmark"></span>
+                        </label>
+                    </div>
+                    <div class="mb-1">
+                        <label class="text-i-link align-middle container inter-600">Show Archived Principals
+                            <input type="checkbox" name="archived" id="archivedPrincipals">
+                            <span class="checkmark"></span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+    
+            <!-- Buttons Section -->
+            <div class="p-4 flex space-x-4">
+                <button type="button" id="filterSearchButton" class="w-1/2 bg-i-blue text-[#fff] inter-400 py-2 px-4 shadow hover:bg-i-blue-hover transition ease-in-out duration-500">Search</button>
+                <button type="reset" id="filterClearButton" class="w-1/2 bg-[#fff] text-i-link inter-600 py-2 px-4 shadow hover:bg-[#f5f5f5] transition ease-in-out duration-500">Clear</button>
+            </div>
+        </div>
+    
+        <!-- Toggle Button -->
+        <button id="panelToggle" class="absolute right-0 top-[2.5%] -translate-y-[2.5%] bg-[#fff] border border-i-link-light rounded-full p-2 shadow-md hover:bg-gray-50 hover:bg-[#f5f5f5] transition ease-in-out duration-500 h-6 w-6 flex items-center justify-center" style="transform: translateX(50%)">
+            <span id="toggleIcon" class="material-icons text-i-link text-xl">chevron_left</span>
+        </button>
+    </div>
+    
+    <!-- Right Panel for Principal Information Overlay -->
+    <div id="rightFilterPanel" class="bg-i-bg w-1/3 px-2 border-l border-i-link-light absolute top-0 h-full z-2 hidden transition-all duration-500 ease-in-out" style="box-shadow: -35px 0 50px rgba(255, 255, 255, 0.8); right: -100%;">
+        <div id="filter-overlay" class="hidden justify-center items-center w-full h-full fixed top-0 left-0 bg-[white] bg-opacity-50">
+            <div class="border border-i-link w-2/3 h-[auto] bg-[white] text-center justify-center items-center shadow-[0_0_20px_5px_rgba(0,0,0,0.2)] p-4">
+                <p class="text-i-header inter-600">Saving Conflicts!</p>
+                <p class="inter-400 text-[14px] text-left mb-2 border-t-[1px] border-i-header">Please note that the principal you are attempting to save has had its information updated while you were editing the principal. 
+                    Please choose to either overwrite the changes with your changes, refresh the principal, or go back.</p>
+                <div class="flex w-full justify-between ">
+                    <button id="save-overwrite" class="bg-[#e64747] hover:bg-[#ff5b5b] text-[white] hover:shadow p-1 px-2 w-1/3 transition ease-in-out duration-500" title="Overwrite Changes">Overwrite</button>
+                    <button id="save-refresh" class="bg-i-blue hover:bg-i-blue-hover text-[white] hover:shadow p-1 px-2 w-1/3 ml-2 mr-2 transition ease-in-out duration-500" title="Refresh Principal">Refresh</button>
+                    <button id="save-cancel" class="bg-[#43a843] hover:bg-[#4ac04a] text-[white] hover:shadow p-1 px-2 w-1/3 transition ease-in-out duration-500" title="Cancel Save">Go Back</button>
+                </div>
+            </div>
+        </div>
+                
+        <!-- Panel Container with padding -->
+        <div id="rightFilterPanel-content" class="py-6 px-[4rem] h-full flex flex-col">
+            
+            <!-- Header -->
+            <div class="flex">
+                <span class="material-icons align-top" title="Admin Center">info</span><h2 class="font-semibold text-lg mb-4 ml-2">Principal Information</h2>
+            </div>
+
+            <!-- Flip-flop Switch Buttons (Principal Details and Contacts) -->
+            <div class="flex space-x-2 mb-6 bg-[#E1E1E1] border border-[#00000026] p-1 inter-600 text-i-link">
+                <button id="principalDetailsBtn" class="w-full py-2 bg-[#F3F3F3] shadow cursor-default transition ease-in-out duration-500">Principal Details</button>
+                <button id="contactsBtn" class="w-full py-2 hover:bg-[#eeeeee] transition ease-in-out duration-500">Contacts</button>
+            </div>
+
+
+            <!-- Main Content Area -->
+            <div class="flex-grow overflow-y-auto">
+                <!-- Principal Details Panel -->
+                <div id="principalDetailsPanel" class="space-y-4 inter-500">
+                    <table class="w-full border border-i-link-light overflow-visible">
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-b border-i-link-light">Principal Name</td>
+                            <td class="border-b border-i-link-light transition ease-in-out duration-500 hover:bg-[#efefef]">
+                                <input type="text" id="principalName" readonly class="bg-transparent border-none outline-none shadow-none w-full py-1.5 px-2 m-0 cursor-default inter-400" style="background-color: transparent;"/>
+                            </td>
+                        </tr>
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-b border-i-link-light">Origin Country</td>
+                            <td class="border-b border-i-link-light transition ease-in-out duration-500 hover:bg-[#efefef]">
+                                <input type="text" id="principalOrigin" readonly class="bg-transparent border-none outline-none shadow-none w-full py-1.5 px-2 m-0 cursor-default inter-400" style="background-color: transparent;"/>
+                            </td>
+                        </tr>
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-b border-i-link-light">Active Shipments</td>
+                            <td class="border-b border-i-link-light transition ease-in-out duration-500 hover:bg-[#efefef]">
+                                <input type="text" id="activeShipments" readonly class="bg-transparent border-none outline-none shadow-none w-full py-1.5 px-2 m-0 cursor-default inter-400" style="background-color: transparent;"/>
+                            </td>
+                        </tr>
+                        <tr class="text-i-link overflow-visible">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-i-link-light items-center overflow-visible">
+                                Principal Tier 
+                                <span class="material-icons relative cursor-pointer group">
+                                    info
+                                    <!-- Popup -->
+                                    <div class="absolute hidden pointer-default inter-600 group-hover:block top-[38px] left-[-90px] w-auto bg-[white] border border-i-link text-i-link shadow-lg p-2 z-10">
+                                        <p class="text-sm text-i-link m-0 p-0"><strong>1A</strong>: Agreement + High Vol Import & Export > 500 Total Tanks</p>
+                                        <p class="text-sm text-i-link m-0 p-0 pb-1 border-b border-i-link-light"><strong>1B</strong>: Agreement + Low Vol Import & Export < 500 Total Tanks</p>
+                                        <p class="text-sm text-i-link m-0 p-0 mt-1"><strong>2A</strong>: Agreement + High Vol 1 Direction > 50 Total Tanks</p>
+                                        <p class="text-sm text-i-link m-0 p-0 pb-1 border-b border-i-link-light"><strong>2B</strong>: No Agreement + High Vol 1 Direction > 50 Total Tanks</p>
+                                        <p class="text-sm text-i-link m-0 p-0 mt-1"><strong>3A</strong>: Agreement + Low Vol 1 Direction < 50 Total Tanks</p>
+                                        <p class="text-sm text-i-link m-0 p-0 pb-1 border-b border-i-link-light"><strong>3B</strong>: No Agreement + Low Vol 1 Direction < 50 Total Tanks</p>
+                                        <p class="text-sm text-i-link m-0 p-0 mt-1"><strong>4A</strong>: No Agreement + Developing</p>
+                                        <p class="text-sm text-i-link m-0 p-0"><strong>4B</strong>: No Agreement + Not Developing</p>
+                                    </div>
+                                </span>
+                            </td>
+                            <td class="transition ease-in-out duration-500 hover:bg-[#efefef]">
+                                <input 
+                                    type="text" 
+                                    id="principalTier" 
+                                    class="w-full py-1.5 px-2 m-0 hover:bg-[#efefef] transition ease-in-out duration-500 bg-transparent placeholder:text-i-link-light border-none outline-none shadow-none" 
+                                    placeholder="Tier.." 
+                                    maxlength="2"
+                                    pattern="^[a-zA-Z0-9]{0,2}$"
+                                    oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2);"
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                />
+                            </td>
+                        </tr>
+                        
+                    </table>
+                    
+                                                          
+
+                    <table class="w-full border border-i-link-light">
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-b border-[#E0E0E0]">Agency Agreement</td>
+                            <td class="m-0 p-0 border-b border-[#E0E0E0]">
+                                <select id="agencyAgreement" class="w-full py-[8.5px] pr-2 pl-1 m-0 cursor-pointer hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] active:bg-[white] inter-400" style=" border: none; outline: none; box-shadow: none;">
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-b border-[#E0E0E0]">Import Fee</td>
+                            <td class="border-b border-[#E0E0E0] m-0 p-0 flex">
+                                <input 
+                                    type="text" 
+                                    id="importFee" 
+                                    class="fee-input w-1/2 py-1.5 px-2 m-0 hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] inter-400" 
+                                    style="border: none; outline: none; box-shadow: none; margin: 0;" 
+                                    pattern="^\d+(\.\d{0,2})?$"
+                                    oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/^(\d*\.\d{0,2}).*$/, '$1');" 
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                />
+                                <select id="importFeeCurrency" class="w-1/2 py-[8.5px] pr-2 pl-1 m-0 cursor-pointer hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] border-l border-[#E0E0E0] inter-400" style="outline: none; box-shadow: none;">
+                                    <option value="0" selected="selected">USD</option>
+                                    <option value="1">AUD</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-b border-[#E0E0E0]">Export Fee (TNL)</td>
+                            <td class="border-b border-[#E0E0E0] m-0 p-0 flex">
+                                <input 
+                                    type="text" 
+                                    id="exportFeeTNL" 
+                                    class="fee-input w-1/2 py-1.5 px-2 m-0 hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] inter-400" 
+                                    style="border: none; outline: none; box-shadow: none; margin: 0;" 
+                                    pattern="^\d+(\.\d{0,2})?$"
+                                    oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/^(\d*\.\d{0,2}).*$/, '$1');" 
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                />
+                                <select id="exportFeeTNLCurrency" class="w-1/2 py-[8.5px] pr-2 pl-1 m-0 cursor-pointer hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] border-l border-[#E0E0E0] inter-400" style="outline: none; box-shadow: none;">
+                                    <option value="0" selected="selected">USD</option>
+                                    <option value="1">AUD</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-b border-[#E0E0E0]">Export Fee (AGENT)</td>
+                            <td class="border-b border-[#E0E0E0] m-0 p-0 flex">
+                                <input 
+                                    type="text" 
+                                    id="exportFeeAGT" 
+                                    class="fee-input w-1/2 py-1.5 px-2 m-0 hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] inter-400" 
+                                    style="border: none; outline: none; box-shadow: none; margin: 0;" 
+                                    pattern="^\d+(\.\d{0,2})?$"
+                                    oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/^(\d*\.\d{0,2}).*$/, '$1');" 
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                />
+                                <select id="exportFeeAGTCurrency" class="w-1/2 py-[8.5px] pr-2 pl-1 m-0 cursor-pointer hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] border-l border-[#E0E0E0] inter-400" style="outline: none; box-shadow: none;">
+                                    <option value="0" selected="selected">USD</option>
+                                    <option value="1">AUD</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-b border-[#E0E0E0]">MT REPO Fee</td>
+                            <td class="border-b border-[#E0E0E0] m-0 p-0 flex">
+                                <input 
+                                    type="text" 
+                                    id="mtRepoFee" 
+                                    class="fee-input w-1/2 py-1.5 px-2 m-0 hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] inter-400" 
+                                    style="border: none; outline: none; box-shadow: none; margin: 0;"
+                                    pattern="^\d+(\.\d{0,2})?$"
+                                    oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/^(\d*\.\d{0,2}).*$/, '$1');"  
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                />
+                                <select id="mtRepoFeeCurrency" class="w-1/2 py-[8.5px] pr-2 pl-1 m-0 cursor-pointer hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] border-l border-[#E0E0E0] inter-400" style="outline: none; box-shadow: none;">
+                                    <option value="0" selected="selected">USD</option>
+                                    <option value="1">AUD</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-[#E0E0E0]">Demurrage Comm. %</td>
+                            <td class="m-0 p-0 flex">
+                                <input 
+                                    type="text" 
+                                    id="demurrageCommission" 
+                                    class="fee-input w-full py-1.5 px-2 m-0 hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] inter-400" 
+                                    style="border: none; outline: none; box-shadow: none; margin: 0;" 
+                                    pattern="^\d+(\.\d{0,2})?$"
+                                    oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/^(\d*\.\d{0,2}).*$/, '$1');" 
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                />
+                            </td>
+                        </tr>
+                    </table>
+                    
+
+                    <!-- Textarea for Notes -->
+                    <div class="mb-0">
+                        <label for="notesTextarea" class="inter-600 text-i-link">Principal Notes</label>
+                        <textarea 
+                            rows="5" 
+                            cols="50" 
+                            style="width: 100%; resize: vertical; font-size: 12px;" 
+                            class="text-i-link px-2 py-1 border placeholder:text-i-link-light border-i-link-light focus:outline-none focus:border-i-link transition ease-in-out duration-500" 
+                            id="principalNotes" 
+                            placeholder="Notes.."
+                            autocomplete="off"
+                            spellcheck="false"
+                        ></textarea>    
+                    </div>
+
+                    <!-- Toggles -->
+                    <div class="flex">
+                        <div class="w-1/2">
+                            <label class="text-i-link align-middle container inter-600">Principal Hidden
+                                <input type="checkbox" id="principalHidden">
+                                <span class="checkmark"></span>
+                            </label>     
+                        </div>
+                        <div class="w-1/2">
+                            <label class="text-i-link align-middle container inter-600">Principal Archived
+                                <input type="checkbox" id="principalArchived">
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contacts Panel (Hidden by default) -->
+                <div id="contactsPanel" class="space-y-4 mb-6 hidden">
+                    <div class="overflow-x-auto h-1/2 contacts-container">
+                        <div class="block overflow-hidden contact-item p-0 relative">
+                            <button id="deleteContactButton" class="z-10 absolute right-[0.75rem] top-[calc(25%_-_0.75rem)] bg-[#FFF] border border-i-link-light rounded-full p-2 shadow-md hover:bg-[#f16a61] transition ease-in-out duration-500 h-6 w-6 flex items-center justify-center" title="Delete Contact">
+                                <span class="material-icons text-i-link text-sm">clear</span>
+                            </button>
+                            <button id="deleteContactButton" class="z-10 absolute right-[0.75rem] top-[calc(25%_-_0.75rem)] bg-[#FFF] border border-i-link-light rounded-full p-2 shadow-md hover:bg-[#61b16a] transition ease-in-out duration-500 h-6 w-6 flex items-center justify-center" title="Delete Contact">
+                                <span class="material-icons text-i-link text-sm">clear</span>
+                            </button>
+                            <div class="flex border-b border-l border-r border-i-link-light">
+                                <p class="px-4 py-2 w-1/2 bg-[#F9F9F9] border-r border-i-link-light text-i-link inter-600">John Doe</p>
+                                <p class="px-4 py-2 w-1/2 bg-[#F9F9F9] text-i-link inter-600">CEO</p>
+                            </div>
+                            <div class="flex border-l border-r border-i-link-light">
+                                <div class="relative flex items-center w-1/2 h-[40px] bg-[#FFFFFF] border-r border-i-link-light text-[#00000088] text-sm">
+                                    <input
+                                        type="text"
+                                        value="+01 234 567 890"
+                                        class="truncate pl-2 pr-10 w-full h-full bg-transparent border-none text-[#00000088] text-sm focus:outline-none focus:ring-1 focus:ring-i-link focus:border-i-link transition ease-in-out duration-500"
+                                    />
+                                    <button
+                                        class="absolute right-2 text-white p-1 rounded hover:text-i-blue-hover transition ease-in-out duration-500"
+                                        title="Copy Phone"
+                                        onclick="copyText('')">
+                                        <span class="material-icons text-sm">content_copy</span>
+                                    </button>
+                                </div>                                
+                                <div class="relative flex items-center w-1/2 h-[40px] bg-[#FFFFFF] border-i-link-light text-[#00000088] text-sm">
+                                    <input
+                                        type="text"
+                                        value="test@gmail.com"
+                                        class="truncate pl-2 pr-10 w-full h-full bg-transparent border-none text-[#00000088] text-sm focus:outline-none focus:ring-1 focus:ring-i-link focus:border-i-link transition ease-in-out duration-500"
+                                    />
+                                    <button
+                                        class="absolute right-2 text-white p-1 rounded hover:text-i-blue-hover transition ease-in-out duration-500"
+                                        title="Copy Email"
+                                        onclick="copyText('')">
+                                        <span class="material-icons text-sm">content_copy</span>
+                                    </button>
+                                </div>                                
+                            </div>
+                        </div>
+                    </div>
+                
+                    <!-- Floating + Button to Add New Contact -->
+                    <button id="addContactButton" class="absolute right-[60px] top-9 bg-[#fff] border border-i-link-light rounded-full p-2 shadow-md hover:bg-gray-50 hover:bg-[#f5f5f5] transition ease-in-out duration-500 h-6 w-6 flex items-center justify-center">
+                        <span class="material-icons text-i-link text-xl">add</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Notes and Save Section Anchored at the Bottom -->
+            <div class="space-y-2 flex flex-col items-center justify-end">
+                <!-- Save Button -->
+                 <p id="lastUpdated" class="inter-400 text-i-link text-[14px]"></p>
+                <button type="button" id="savePrincipalButton" class="w-2/3 bg-i-blue text-center text-[#fff] inter-400 py-2 px-4 shadow hover:bg-i-blue-hover transition ease-in-out duration-500">Save Changes</button>
+            </div>
+        </div>
+
+        <!-- Toggle Button -->
+        <button id="closePanelButton" class="absolute left-0 top-[2.5%] -translate-y-[2.5%] bg-[#fff] border border-i-link-light rounded-full p-2 shadow-md hover:bg-gray-50 hover:bg-[#f5f5f5] transition ease-in-out duration-500 h-6 w-6 flex items-center justify-center" style="transform: translateX(-50%); z-index: 2;">
+            <span class="material-icons text-i-link text-xl">chevron_right</span>
+        </button>
+    </div>
+
+    <!-- Right Panel for New Principal -->
+    <div id="newPrincipalPanel" class="bg-i-bg w-1/3 px-2 border-l border-i-link-light absolute top-0 h-full z-2 hidden transition-all duration-500 ease-in-out" style="box-shadow: -35px 0 50px rgba(255, 255, 255, 0.8); right: -100%;">
+        
+        <!-- Panel Container with padding -->
+        <div class="py-6 px-[4rem] h-full flex flex-col">
+            
+            <!-- Header -->
+            <div class="flex">
+                <span class="material-icons align-[6px]" title="Admin Center">info</span><h2 class="font-semibold text-lg mb-4 ml-2">Create Principal</h2>
+            </div>
+
+            <!-- Flip-flop Switch Buttons (Principal Details and Contacts) -->
+            <div class="flex space-x-2 mb-6 bg-[#E1E1E1] border border-[#00000026] p-1 inter-600 text-i-link">
+                <button id="nprincipalDetailsBtn" class="w-full py-2 bg-[#F3F3F3] shadow cursor-default transition ease-in-out duration-500">Principal Details</button>
+                <button id="ncontactsBtn" class="w-full py-2 transition ease-in-out duration-500 cursor-not-allowed" disabled title="Create principal first!">Contacts</button>
+            </div>
+
+
+            <!-- Main Content Area -->
+            <div class="flex-grow overflow-x-hidden overflow-y-auto">
+                <!-- Principal Details Panel -->
+                <div id="nprincipalDetailsPanel" class="space-y-4 inter-500">
+                    <table class="w-full border border-i-link-light overflow-visible">
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-b border-i-link-light">Principal Name</td>
+                            <td class="border-b border-i-link-light transition ease-in-out duration-500 hover:bg-[#efefef]">
+                                <input 
+                                    type="text" 
+                                    id="nprincipalName" 
+                                    class="bg-transparent border-none outline-none shadow-none w-full py-1.5 px-2 m-0 inter-400 placeholder:text-i-link-light" 
+                                    style="background-color: transparent;" 
+                                    placeholder="Principal Name.."
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                />
+                            </td>
+                        </tr>
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-b border-i-link-light">Origin Country</td>
+                            <td class="border-b border-i-link-light transition ease-in-out duration-500 hover:bg-[#efefef]">
+                                <select id="noriginCountry" class="w-full py-[8.5px] pr-2 pl-1 m-0 cursor-pointer hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] active:bg-[white]" style=" border: none; outline: none; box-shadow: none;">
+                                    {% for country in countries %}
+                                        <option value="{{country}}">{{country}}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-b border-i-link-light">Active Shipments</td>
+                            <td class="border-b border-i-link-light transition ease-in-out duration-500 hover:bg-[#efefef]">
+                                <input type="text" id="nactiveShipments" readonly class="bg-transparent border-none outline-none shadow-none w-full py-1.5 px-2 m-0 cursor-default" style="background-color: transparent;" placeholder="0"/>
+                            </td>
+                        </tr>
+                        <tr class="text-i-link overflow-visible">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-i-link-light items-center overflow-visible">
+                                Principal Tier 
+                                <span class="material-icons relative cursor-pointer group">
+                                    info
+                                    <!-- Popup -->
+                                    <div class="absolute hidden pointer-default inter-600 group-hover:block top-[38px] left-[-90px] w-auto bg-[white] border border-i-link text-i-link shadow-lg p-2 z-10">
+                                        <p class="text-sm text-i-link m-0 p-0"><strong>1A</strong>: Agreement + High Vol Import & Export > 500 Total Tanks</p>
+                                        <p class="text-sm text-i-link m-0 p-0 pb-1 border-b border-i-link-light"><strong>1B</strong>: Agreement + Low Vol Import & Export < 500 Total Tanks</p>
+                                        <p class="text-sm text-i-link m-0 p-0 mt-1"><strong>2A</strong>: Agreement + High Vol 1 Direction > 50 Total Tanks</p>
+                                        <p class="text-sm text-i-link m-0 p-0 pb-1 border-b border-i-link-light"><strong>2B</strong>: No Agreement + High Vol 1 Direction > 50 Total Tanks</p>
+                                        <p class="text-sm text-i-link m-0 p-0 mt-1"><strong>3A</strong>: Agreement + Low Vol 1 Direction < 50 Total Tanks</p>
+                                        <p class="text-sm text-i-link m-0 p-0 pb-1 border-b border-i-link-light"><strong>3B</strong>: No Agreement + Low Vol 1 Direction < 50 Total Tanks</p>
+                                        <p class="text-sm text-i-link m-0 p-0 mt-1"><strong>4A</strong>: No Agreement + Developing</p>
+                                        <p class="text-sm text-i-link m-0 p-0"><strong>4B</strong>: No Agreement + Not Developing</p>
+                                    </div>
+                                </span>
+                            </td>
+                            <td class="transition ease-in-out duration-500 hover:bg-[#efefef]">
+                                <input 
+                                    type="text" 
+                                    id="nprincipalTier" 
+                                    class="w-full py-1.5 px-2 m-0 hover:bg-[#efefef] transition ease-in-out duration-500 bg-transparent inter-400 placeholder:text-i-link-light border-none outline-none shadow-none" 
+                                    placeholder="Tier.." 
+                                    maxlength="2"
+                                    pattern="^[a-zA-Z0-9]{0,2}$"
+                                    oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2);"
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                    value="4B"
+                                />
+                            </td>
+                        </tr>
+                    </table>
+                    
+                                                          
+
+                    <table class="w-full border border-i-link-light">
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-b border-[#E0E0E0]">Agency Agreement</td>
+                            <td class="m-0 p-0 border-b border-[#E0E0E0]">
+                                <select id="nagencyAgreement" class="w-full py-[8.5px] pr-2 pl-1 m-0 cursor-pointer hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] active:bg-[white]" style=" border: none; outline: none; box-shadow: none;">
+                                    <option value="true">Yes</option>
+                                    <option value="false" selected>No</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-b border-[#E0E0E0]">Import Fee</td>
+                            <td class="border-b border-[#E0E0E0] m-0 p-0 flex">
+                                <input 
+                                    type="text" 
+                                    id="nimportFee" 
+                                    class="fee-input w-1/2 py-1.5 px-2 m-0 hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] inter-400 placeholder:text-i-link-light" 
+                                    style="border: none; outline: none; box-shadow: none; margin: 0;" 
+                                    placeholder="0.00"
+                                    pattern="^\d+(\.\d{0,2})?$"
+                                    oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/^(\d*\.\d{0,2}).*$/, '$1');" 
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                />
+                                <select id="nimportFeeCurrency" class="w-1/2 py-[8.5px] pr-2 pl-1 m-0 cursor-pointer hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] border-l border-[#E0E0E0]" style="outline: none; box-shadow: none;">
+                                    <option value="0" selected="selected">USD</option>
+                                    <option value="1">AUD</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-b border-[#E0E0E0]">Export Fee (TNL)</td>
+                            <td class="border-b border-[#E0E0E0] m-0 p-0 flex">
+                                <input 
+                                    type="text" 
+                                    id="nexportFeeTNL" 
+                                    class="fee-input w-1/2 py-1.5 px-2 m-0 hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] inter-400 placeholder:text-i-link-light" 
+                                    style="border: none; outline: none; box-shadow: none; margin: 0;" 
+                                    placeholder="0.00"
+                                    pattern="^\d+(\.\d{0,2})?$"
+                                    oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/^(\d*\.\d{0,2}).*$/, '$1');" 
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                />
+                                <select id="nexportFeeTNLCurrency" class="w-1/2 py-[8.5px] pr-2 pl-1 m-0 cursor-pointer hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] border-l border-[#E0E0E0]" style="outline: none; box-shadow: none;">
+                                    <option value="0" selected="selected">USD</option>
+                                    <option value="1">AUD</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-b border-[#E0E0E0]">Export Fee (AGENT)</td>
+                            <td class="border-b border-[#E0E0E0] m-0 p-0 flex">
+                                <input 
+                                    type="text" 
+                                    id="nexportFeeAGT" 
+                                    class="fee-input w-1/2 py-1.5 px-2 m-0 hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] inter-400 placeholder:text-i-link-light" 
+                                    style="border: none; outline: none; box-shadow: none; margin: 0;" 
+                                    placeholder="0.00"
+                                    pattern="^\d+(\.\d{0,2})?$"
+                                    oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/^(\d*\.\d{0,2}).*$/, '$1');" 
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                />
+                                <select id="nexportFeeAGTCurrency" class="w-1/2 py-[8.5px] pr-2 pl-1 m-0 cursor-pointer hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] border-l border-[#E0E0E0]" style="outline: none; box-shadow: none;">
+                                    <option value="0" selected="selected">USD</option>
+                                    <option value="1">AUD</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-b border-[#E0E0E0]">MT REPO Fee</td>
+                            <td class="border-b border-[#E0E0E0] m-0 p-0 flex">
+                                <input 
+                                    type="text" 
+                                    id="nmtRepoFee" 
+                                    class="fee-input w-1/2 py-1.5 px-2 m-0 hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] inter-400 placeholder:text-i-link-light" 
+                                    style="border: none; outline: none; box-shadow: none; margin: 0;" 
+                                    placeholder="0.00"
+                                    pattern="^\d+(\.\d{0,2})?$"
+                                    oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/^(\d*\.\d{0,2}).*$/, '$1');" 
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                />
+                                <select id="nmtRepoFeeCurrency" class="w-1/2 py-[8.5px] pr-2 pl-1 m-0 cursor-pointer hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] border-l border-[#E0E0E0]" style="outline: none; box-shadow: none;">
+                                    <option value="0" selected="selected">USD</option>
+                                    <option value="1">AUD</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr class="text-i-link">
+                            <td class="font-semibold bg-[#F3F3F3] w-2/5 py-1.5 px-3 border-r border-[#E0E0E0]">Demurrage Comm. %</td>
+                            <td class="m-0 p-0 flex">
+                                <input 
+                                    type="text" 
+                                    id="ndemurrageCommission" 
+                                    class="fee-input w-full py-1.5 px-2 m-0 hover:bg-[#efefef] transition ease-in-out duration-500 bg-[transparent] inter-400 placeholder:text-i-link-light" 
+                                    style="border: none; outline: none; box-shadow: none; margin: 0;" 
+                                    placeholder="0.00"
+                                    pattern="^\d+(\.\d{0,2})?$"
+                                    oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/^(\d*\.\d{0,2}).*$/, '$1');" 
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                />
+                            </td>
+                        </tr>
+                    </table>
+                    
+
+                    <!-- Textarea for Notes -->
+                    <div class="">
+                        <label for="notesTextarea" class="inter-600 text-i-link">Principal Notes</label>
+                        <textarea 
+                            rows="5" 
+                            cols="50" 
+                            style="width: 100%; resize: vertical; font-size: 12px;" 
+                            class="text-i-link px-2 py-1 border placeholder:text-i-link-light border-i-link-light focus:outline-none focus:border-i-link transition ease-in-out duration-500" 
+                            id="nprincipalNotes" 
+                            placeholder="Notes.."
+                            autocomplete="off"
+                            spellcheck="false"
+                        ></textarea>    
+                    </div>
+
+                    <div class="flex">
+                        <div class="w-1/2">
+                            <label class="text-i-link align-middle container inter-600">Principal Hidden
+                                <input type="checkbox" id="nprincipalHidden">
+                                <span class="checkmark"></span>
+                            </label>     
+                        </div>
+                        <div class="w-1/2">
+                            <label class="text-i-link align-middle container inter-600">Principal Archived
+                                <input type="checkbox" id="nprincipalArchived">
+                                <span class="checkmark"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes and Save Section Anchored at the Bottom -->
+            <div class="space-y-2 flex flex-col items-center justify-end">
+                <!-- Save Button -->
+                 <p id="nlastUpdated" class="inter-400 text-i-link"></p>
+                <button type="button" id="createPrincipalButton" class="w-2/3 bg-i-blue text-center text-[#fff] inter-400 py-2 px-4 shadow hover:bg-i-blue-hover transition ease-in-out duration-500">Create Principal</button>
+            </div>
+        </div>
+
+        <!-- Toggle Button -->
+        <button id="nclosePanelButton" class="absolute left-0 top-[2.5%] -translate-y-[2.5%] bg-[#fff] border border-i-link-light rounded-full p-2 shadow-md hover:bg-gray-50 hover:bg-[#f5f5f5] transition ease-in-out duration-500 h-6 w-6 flex items-center justify-center" style="transform: translateX(-50%)">
+            <span class="material-icons text-i-link text-xl">chevron_right</span>
+        </button>
+    </div>
+
+
+    <!-- Right Panel for Table -->
+    <div id="mainPanel" class="w-[80%] flex flex-col h-full">
+        <!-- Header Section -->
+        <div class="bg-[#fff] p-4 flex items-center justify-between border-b border-i-link-light text-lg">
+            <p class="inter-600 text-i-header"><span class="material-icons align-top" title="Admin Center">business_center</span><span class="ml-1">Principals</span></p>
+            <div class="space-x-2">
+                <!-- <button class="bg-[#F3F3F3] text-[#00000040] py-2 px-4 rounded-lg shadow border border-[#00000026]">Button 1</button> -->
+                <button class="bg-[#F3F3F3] text-[#00000040] inter-600 px-4  shadow border border-[#00000026] w-[120px] h-[30px] text-[14px] hover:bg-[#e2e2e2] transition ease-in-out duration-500">Export CSV</button>
+            </div>
+        </div>
+
+        <!-- Table Section -->
+        <div class="overflow-y-auto flex-grow">
+            <table class="min-w-full border-collapse table-fixed">
+                <thead>
+                    <tr>
+                        <th class="w-3/12 border-b border-i-link-light px-4 py-2 text-left text-sm font-semibold text-i-link cursor-default">Principal</th>
+                        <th class="w-1/12 border-b border-l border-i-link-light px-4 py-2 text-left text-sm font-semibold text-i-link cursor-default">Tier</th>
+                        <th class="w-2/12 border-b border-l border-i-link-light px-4 py-2 text-left text-sm font-semibold text-i-link cursor-default">Agency Agreement</th>
+                        <th class="w-2/12 border-b border-l border-i-link-light px-4 py-2 text-left text-sm font-semibold text-i-link cursor-default">Demurrage Commission</th>
+                        <th class="w-2/12 border-b border-l border-i-link-light px-4 py-2 text-left text-sm font-semibold text-i-link cursor-default">Origin Country</th>
+                        <th class="w-2/12 border-b border-l border-r border-i-link-light px-4 py-2 text-left text-sm font-semibold text-i-link cursor-default">Active Shipments</th>
+                    </tr>
+                </thead>
+                <tbody id="principalTableList">
+                    {% for principal in principals %}
+                    <tr class="{{ 'bg-[transparent]' if loop.index0 % 2 == 0 else 'bg-white' }} {{ 'hidden' if principal.isHidden == 1 or principal.isArchived == 1 }} hover:bg-[#efefef] principal" data-name="{{principal.name}}" data-tier="{{principal.tier}}" data-agreement="{{principal.agencyAgreement}}" data-demurrage="{{principal.demurrageCommission}}" data-origin="{{principal.originCountry}}" data-hidden="{{principal.isHidden}}" data-archived="{{principal.isArchived}}">
+                        <td class="border-b border-i-link-light text-[#0000008C] px-4 py-2 text-sm cursor-pointer principal-name" data-principal-id="{{ principal.id }}"><span class="underline">{{ principal.name }}</span></td>
+                        <td class="border border-i-link-light text-i-link px-4 py-2 text-sm">{{ principal.tier }}</td>
+                        <td class="border border-i-link-light text-i-link px-4 py-2 text-sm">{{ "Yes" if principal.agencyAgreement else "No" }}</td>
+                        <td class="border border-i-link-light text-i-link px-4 py-2 text-sm">{{ "%.2f"|format(principal.demurrageCommission) }}%</td>
+                        <td class="border border-i-link-light text-i-link px-4 py-2 text-sm">{{ principal.originCountry }}</td>
+                        <td class="border border-i-link-light text-i-link px-4 py-2 text-sm">{{ principal.activeShipments }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Floating Add Principal Button -->
+            <div id="addPrincipalButton" style="position:absolute; right: 1.5%; bottom: 2.5%;">
+                <button class="border border-[#FFFFFF66] bg-i-blue py-2 px-4 rounded-full text-[#fff] shadow-2xl hover:bg-i-blue-hover transition ease-in-out duration-500"><span class="material-icons text-[28px]">add</span></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../../static/js/principals.js"></script>
+
+{% endblock %}
+
+

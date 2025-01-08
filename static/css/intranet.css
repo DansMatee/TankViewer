@@ -1,0 +1,408 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+    font-family: "Inter";
+    background-color: #F3F3F3;
+}
+
+body {
+    font-family: "Inter";
+    margin: 0;
+}
+
+tbody tr:nth-child(even) {
+    @apply bg-[#FFFFFF]; /* Tailwind utility */
+}
+
+tbody tr:nth-child(odd) {
+    @apply bg-[#F9F9F9];
+}
+
+.shadow-inset {
+    box-shadow: inset 0 -4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.sort-icon {
+    display: inline-block;
+    width: 16px; /* Reserve space for the icon */
+    text-align: center;
+    visibility: hidden; /* Hide by default */
+}
+
+th.sorted-asc .sort-icon {
+    visibility: visible;
+    transform: rotate(0deg); /* Upward caret */
+}
+
+th.sorted-desc .sort-icon {
+    visibility: visible;
+    transform: rotate(180deg); /* Downward caret */
+}
+
+@keyframes cascade {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cascade {
+    opacity: 0;
+    animation: cascade 0.5s ease forwards;
+    z-index: 1;
+}
+
+/* Navbar Styling */
+nav {
+    height: 48px; /* Fixed height for the navbar */
+    display: flex;
+    align-items: center;
+}
+
+/* Flexbox for navbar */
+nav > div {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* Ensure links fill the height */
+nav a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%; /* Extend vertically to fill navbar */
+    padding: 0 16px;
+    box-sizing: border-box;
+}
+
+/* Add hover effect with border-bottom */
+nav a:hover {
+    border-bottom: 3px solid #007bff; /* Example color for border */
+}
+
+/* Dropdown Styling */
+.dropdown {
+    position: relative;
+    height: 100%; /* Ensure dropdown header matches navbar height */
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%; /* Start dropdown just below the navbar */
+    left: 0;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    min-width: 200px;
+    border: 1px solid #ddd; /* Optional border */
+}
+
+.dropdown-content a,
+.dropdown-content-right a {
+    display: block;
+    padding: 8px 16px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.dropdown-content a:hover,
+.dropdown-content-right a:hover {
+    background-color: #f3f3f3;
+    color: #007bff;
+    border-bottom: none;
+}
+
+/* Show dropdown on hover */
+.dropdown:hover .dropdown-content,
+.dropdown:hover .dropdown-content-right {
+    display: block;
+}
+
+.dropdown-content-right {
+    display: none;
+    position: absolute;
+    top: 100%; /* Start dropdown just below the navbar */
+    right: 0;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    min-width: 200px;
+    border: 1px solid #ddd; /* Optional border */
+    text-align: right;
+}
+
+/* Global Scrollbar Styles */
+::-webkit-scrollbar {
+    width: 8px; /* Width of vertical scrollbar */
+    height: 8px; /* Height of horizontal scrollbar */
+}
+
+::-webkit-scrollbar-track {
+    background: transparent; /* Transparent track */
+}
+
+::-webkit-scrollbar-thumb {
+    background: #b0b0b0; /* Grey thumb */
+    border-radius: 4px; /* Rounded corners */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #8a8a8a; /* Darker grey thumb on hover */
+}
+
+/* Completely hide the scrollbar arrows (if supported by the browser) */
+::-webkit-scrollbar-button {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+/* Firefox-specific styles */
+* {
+    scrollbar-width: thin; /* Thinner scrollbar */
+    scrollbar-color: #b0b0b0 transparent; /* Grey thumb, transparent track */
+}
+
+/* Target and remove arrow buttons for some legacy systems */
+::-webkit-scrollbar-button:single-button {
+    display: none;
+}
+
+
+/* Table Styles */
+table {
+    border-collapse: separate; /* Enable spacing between cells */
+    border-spacing: 0; /* Set cell spacing to 0 */
+    overflow: hidden; /* Prevent cell content from spilling over rounded corners */
+}
+
+.contacts-container > .contact-item:first-child {
+    border-top: 1px solid #00000026;
+}
+
+.contacts-container.shadow {
+    box-shadow: inset 0px -5px 5px -5px black;
+}
+
+.hover\:bg-red-important:hover {
+    background-color: #db3232 !important;
+}
+
+.hover\:bg-green-important:hover {
+    background-color: #db3232 !important;
+}
+
+.deleteContactButton:hover > span {
+    color: white;
+}
+
+.saveContactButton:hover > span {
+    color: white;
+}
+
+
+
+
+.container {
+    display: block;
+    position: relative;
+    padding-left: 25px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+  
+  /* Hide the browser's default checkbox */
+.container input {
+    position: absolute;
+    opacity: 0;
+    height: 0;
+    width: 0;
+}
+  
+  /* Create a custom checkbox */
+.checkmark {
+    position: absolute;
+    top: 3px;
+    left: 0;
+    height: 18px;
+    width: 18px;
+    background-color: white;
+    border: 1px solid #00000026;
+    cursor: pointer;
+    transition: ease-in-out 500ms;
+}
+  
+  /* On mouse-over, add a grey background color */
+.checkmark:hover {
+    background-color: #efefef;
+}
+  
+  /* When the checkbox is checked, add a blue background */
+.container input:checked ~ .checkmark {
+    background-color: white;
+    border: 1px solid #00000066;
+}
+  
+  /* Create the checkmark/indicator (hidden when not checked) */
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+  
+  /* Show the checkmark when checked */
+.container input:checked ~ .checkmark:after {
+    display: block;
+}
+  
+  /* Style the checkmark/indicator */
+.container .checkmark:after {
+    left: 5.5px;
+    top: 3px;
+    width: 5px;
+    height: 10px;
+    border: solid #00000066;
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+
+#filter-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.5); /* Black with 50% transparency */
+    z-index: 1; /* Adjust as necessary */
+}
+
+
+/* 
+h1 {
+    color: #ffffff;
+    font-size: 48px;
+    font-weight: 400;
+}
+
+a {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(0,0,0,0.4);
+}
+
+nav {
+    background-color: #ffffff;
+}
+
+nav div {
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+}
+
+nav div img {
+    width: 5%;
+    height: 5%;
+}
+
+nav div a {
+    text-decoration: none;
+    display: inline-flex;
+    padding: 0.5rem;
+    transition: 0.25s all ease;
+    align-items: center;
+}
+
+nav div a.active {
+    color: #0079C2;
+}
+
+nav div a:hover {
+    color: #0079C2;
+}
+
+.header-a {
+    flex: auto;
+    margin: 0;
+}
+
+nav div ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav div ul li a,
+nav div ul li span,
+header .action {
+    display: block;
+    padding: 0.5rem;
+}
+
+.content>header h1 {
+    flex: auto;
+    margin: 1rem 0 0.25rem 0;
+}
+
+.flash {
+    margin: 1em 0;
+    padding: 1em;
+    background: #cae6f6;
+    border: 1px solid #377ba8;
+}
+
+.post>header {
+    display: flex;
+    align-items: flex-end;
+    font-size: 0.85em;
+}
+
+.intra-index {
+    padding: 0 10px;
+}
+
+.intra-page-header {
+    color: #082A47;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.intra-page-table {
+    width: 90%;
+    min-height: 80vh;
+    margin: 0 auto;
+}
+
+.intra-page-table .row {
+    height: 40vh;
+    display: flex;
+}
+
+.intra-page-table .row .item {
+    margin: 10px;
+    border: 1px solid rgba(0,0,0,0.15);
+    width: 50%;
+    background-color: #F9F9F9;
+    border-radius: 5px;
+}
+
+.intra-page-table .row .item .item-header {
+    border-bottom: 1px solid rgba(0,0,0,0.15);
+    background-color: #ffffff;
+    height: 10%;
+    border-radius: 5px 5px 0 0;
+} */

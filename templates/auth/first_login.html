@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-i-bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/fonts.css') }}" rel="stylesheet">
+    <title>Tanks - First Login</title>
+</head>
+<body>
+    <div class="flex justify-center items-start h-[80vh] mt-[20vh]">     
+      <section class="content inter-600 text-i-red" style="position: absolute; top: 50px;">
+        {% for message in get_flashed_messages() %}
+            <div class="flash">{{ message }}</div>
+        {% endfor %}
+        {% block content %}{% endblock %}
+      </section>
+        <div class="w-auto">      
+          <div class="text-center">
+            <h1 class="text-i-header font-display inter-600 border-b border-i-header" style="font-size: 24px;">TankView - First Login</h1>
+            <form method="post">
+              <input type="hidden" name="form_type" value="login"><br>
+      
+              <div class="mb-4">
+                <label for="oldpassword" class="inter-600 text-i-link block text-left">Old Password</label>
+                <input type="password" class="inter-500 border-i-link-light text-i-link py-2 px-2 rounded-md border placeholder:text-i-link-light focus:outline-none focus:border-i-link transition ease-in-out duration-500" style="font-size: 12px; width: 300px;" name="oldpassword" id="oldpassword" placeholder="Enter Old Password" required><br>
+              </div>
+      
+              <div class="mb-4">
+                <label for="newpassword" class="inter-600 text-i-link block text-left">New Password</label>
+                <input type="password" class="inter-500 border-i-link-light text-i-link py-2 px-2 rounded-md border placeholder:text-i-link-light focus:outline-none focus:border-i-link transition ease-in-out duration-500" style="font-size: 12px; width: 300px;" name="newpassword" id="newpassword" placeholder="Enter New Password" required><br>
+              </div>
+
+              <div class="mb-4">
+                <label for="repeatpassword" class="inter-600 text-i-link block text-left">Confirm Password</label>
+                <input type="password" class="inter-500 border-i-link-light text-i-link py-2 px-2 rounded-md border placeholder:text-i-link-light focus:outline-none focus:border-i-link transition ease-in-out duration-500" style="font-size: 12px; width: 300px;" name="repeatpassword" id="repeatpassword" placeholder="Confirm New Password" required><br>
+              </div>
+      
+              <input type="submit" value="Change" class="w-3/4 py-2 rounded-md bg-i-blue hover:bg-i-blue-hover text-i-bg inter-600 cursor-pointer transition ease-in-out duration-500">
+            </form>
+          </div>
+        </div>
+      </div>     
+</body>
+</html>
